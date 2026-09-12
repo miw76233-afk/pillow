@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ขนาดหมอนของคุณ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #F6F3EE;
+    --card: #FFFFFF;
+    --ink: #2E2B26;
+    --muted: #8A8377;
+    --accent: #5B7B8C;
+    --accent-soft: #E7EEF0;
+    --border: #E2DDD3;
+    --danger: #B3492F;
+    --col-back: #7FA7C9;
+    --col-side: #6FB897;
+    --col-stomach: #E3A272;
+    --maxw: 440px;
+  }
+  @media (min-width: 640px){ :root{ --maxw: 560px; } }
+  @media (min-width: 1000px){ :root{ --maxw: 620px; } }
+  html[data-theme="dark"]{
+    --bg: #1E1C19;
+    --card: #27241F;
+    --ink: #EDE9E2;
+    --muted: #A39C8E;
+    --accent: #8FB2C4;
+    --accent-soft: #32454C;
+    --border: #3B372F;
+    --danger: #E08165;
+    --col-back: #5C87A8;
+    --col-side: #4E9575;
+    --col-stomach: #B97E4E;
+  }
+  *{ box-sizing: border-box; }
+  html{
+    font-size: clamp(15px, 0.85vw + 13px, 18px);
+    -webkit-text-size-adjust: 100%;
+  }
+  html, body{
+    margin:0; padding:0; min-height:100dvh;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    transition: background .2s ease, color .2s ease;
+  }
+  body{
+    display:flex; flex-direction:column; align-items:center;
+    padding: clamp(20px, 4vw, 48px) clamp(16px, 4vw, 24px) clamp(40px, 6vw, 64px);
+  }
+  .topbar{
+    width:100%; max-width: var(--maxw);
+    display:flex; justify-content:flex-end;
+    margin-bottom: 12px;
+  }
+  .theme-toggle{
+    display:flex; align-items:center; gap:6px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-family: inherit;
+    cursor:pointer;
+  }
+  .theme-toggle svg{ width:14px; height:14px; stroke: var(--muted); }
+  .card{
+    width:100%; max-width: var(--maxw);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: clamp(28px, 5vw, 48px) clamp(22px, 5vw, 40px);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    transition: background .2s ease, border-color .2s ease;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size: 1.7rem;
+    line-height:1.3;
+    margin: 0 0 8px;
+    text-align:center;
+  }
+  .sub{
+    color: var(--muted);
+    font-size: 0.95rem;
+    text-align:center;
+    margin: 0 0 28px;
+    line-height:1.5;
+  }
+  .field{ margin-bottom: 20px; }
+  .field label{
+    display:block;
+    font-size:0.9rem;
+    font-weight:600;
+    margin-bottom:8px;
+  }
+  .field .hint{
+    font-weight:400;
+    color: var(--muted);
+    font-size:0.8rem;
+    display:block;
+    margin-top:4px;
+  }
+  .err{
+    font-size:0.8rem;
+    color: var(--danger);
+    margin-top:4px;
+    display:none;
+  }
+  input[type="number"]{
+    width:100%;
+    min-height: 48px;
+    padding: 11px 14px;
+    border:1px solid var(--border);
+    border-radius:9px;
+    font-size:1rem;
+    font-family:inherit;
+    color: var(--ink);
+    background: var(--bg);
+  }
+  input[type="number"]::placeholder{
+    color: var(--muted);
+  }
+  input[type="number"]:focus{
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  .mode-select{ display:flex; gap:8px; }
+  .mode-opt{
+    flex:1; min-height:48px;
+    padding: 10px 8px;
+    border:1px solid var(--border); border-radius:9px;
+    background: var(--bg); color: var(--muted);
+    font-family:inherit; font-size:0.88rem; font-weight:600;
+    cursor:pointer; transition: all .15s;
+  }
+  .mode-opt.active{ background: var(--accent); border-color: var(--accent); color: var(--card); }
+  html[data-theme="dark"] .mode-opt.active{ color:#1E1C19; }
+  .condition-select{ display:flex; flex-wrap:wrap; gap:8px; }
+  .condition-opt{
+    flex: 1 1 auto; min-height:44px;
+    padding: 9px 12px;
+    border:1px solid var(--border); border-radius:9px;
+    background: var(--bg); color: var(--ink);
+    font-family:inherit; font-size:0.82rem; font-weight:500;
+    cursor:pointer; transition: all .15s; text-align:center;
+  }
+  .condition-opt.active{ background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight:600; }
+  #patient-conditions{ display:none; }
+  .condition-note{
+    font-size:0.85rem; line-height:1.6; color: var(--ink);
+    background: var(--accent-soft);
+    border-left: 3px solid var(--danger);
+    padding: 12px 14px; border-radius: 6px;
+    margin-top: 14px;
+  }
+  .slider-row-label{
+    display:flex; justify-content:space-between;
+    font-size:0.85rem;
+    margin-bottom:6px;
+  }
+  .slider-row-label span:last-child{ color: var(--accent); font-weight:600; }
+  input[type="range"]{
+    width:100%;
+    height: 28px;
+    accent-color: var(--accent);
+    touch-action: pan-y;
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:22px; height:22px;
+    border-radius:50%;
+    background: var(--accent);
+    cursor:pointer;
+    margin-top:-2px;
+  }
+  input[type="range"]::-moz-range-thumb{
+    width:22px; height:22px;
+    border:none; border-radius:50%;
+    background: var(--accent);
+    cursor:pointer;
+  }
+  .slider-block{ margin-bottom: 14px; }
+  button{
+    width:100%;
+    min-height: 48px;
+    padding: 13px;
+    border:none;
+    border-radius:9px;
+    background: var(--accent);
+    color: var(--card);
+    font-size:1rem;
+    font-weight:600;
+    font-family:inherit;
+    cursor:pointer;
+    transition: opacity .15s;
+  }
+  html[data-theme="dark"] #calc-btn{ color:#1E1C19; }
+  button:hover{ opacity:0.9; }
+  button.secondary{
+    background:transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    margin-top:18px;
+  }
+  .step{ animation: fade .35s ease; }
+  @keyframes fade{
+    from{ opacity:0; transform: translateY(6px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+  #result-step{ display:none; }
+  .illustration{ display:flex; justify-content:center; margin: 4px 0 18px; }
+  .illustration svg{ width: min(100%, 320px); height:auto; }
+  .mix-bar{ display:flex; height:10px; border-radius:5px; overflow:hidden; margin-bottom:6px; }
+  .mix-legend{ display:flex; justify-content:space-between; font-size:0.75rem; color: var(--muted); margin-bottom:22px; }
+  .dims{ display:flex; gap:12px; margin-bottom: 18px; }
+  .dim-box{ flex:1; text-align:center; padding: 16px 8px; background: var(--accent-soft); border-radius:10px; }
+  .dim-box .num{
+    font-family:'Fraunces', serif;
+    font-size:1.6rem; font-weight:500;
+    color: var(--accent); line-height:1;
+  }
+  .dim-box .label{ font-size:0.75rem; color: var(--muted); margin-top:6px; line-height:1.4; }
+  .note{
+    font-size:0.85rem; line-height:1.6; color: var(--ink);
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    padding: 12px 14px; border-radius: 6px;
+  }
+  .shape-select{ display:flex; gap:8px; }
+  .shape-opt{
+    flex:1; min-height:64px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+    padding: 8px 4px;
+    border:1px solid var(--border); border-radius:9px;
+    background: var(--bg); color: var(--muted);
+    font-family:inherit; font-size:0.78rem; font-weight:600;
+    cursor:pointer; transition: all .15s;
+  }
+  .shape-opt svg{ width:26px; height:16px; stroke: var(--muted); fill:none; stroke-width:1.6; transition: stroke .15s; }
+  .shape-opt.active{ background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  .shape-opt.active svg{ stroke: var(--accent); }
+  .recommend{
+    font-size:0.85rem; line-height:1.6; color: var(--ink);
+    background: var(--card);
+    border: 1.5px solid var(--accent);
+    padding: 14px 16px; border-radius: 10px;
+    margin-top: 14px;
+  }
+  .recommend .rec-title{
+    font-family:'Fraunces', serif; font-size:1.05rem; font-weight:600;
+    color: var(--accent); margin-bottom:6px; display:block;
+  }
+  .recommend .rec-match{
+    display:inline-block; font-size:0.72rem; font-weight:600; color: var(--accent);
+    background: var(--accent-soft); padding:2px 8px; border-radius:999px; margin-bottom:8px;
+  }
+  .wedge-note{
+    font-size:0.78rem; line-height:1.6; color: var(--muted);
+    margin-top:10px;
+  }
+  .eq{
+    font-size:0.8rem; color: var(--muted); margin-top:8px; text-align:center;
+    font-family: 'Fraunces', serif; font-style:italic;
+  }
+  .disclaimer{
+    font-size:0.75rem; color: var(--muted);
+    text-align:center; margin-top:18px; line-height:1.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <button type="button" class="theme-toggle" id="theme-toggle">
+    <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+    <span id="theme-label">โหมดสว่าง</span>
+  </button>
+</div>
+
+<div class="card">
+
+  <div id="form-step" class="step">
+    <h1>หมอนใบไหนเหมาะกับคุณ</h1>
+    <p class="sub">กรอกสรีระและสัดส่วนท่านอนของคุณ เพื่อดูขนาดหมอนที่เหมาะที่สุด</p>
+
+    <div class="field">
+      <label>ใช้สำหรับ</label>
+      <div class="mode-select" id="mode-select">
+        <button type="button" class="mode-opt active" data-mode="general">บุคคลทั่วไป</button>
+        <button type="button" class="mode-opt" data-mode="patient">ผู้มีปัญหาเฉพาะ</button>
+      </div>
+    </div>
+
+    <div class="field" id="patient-conditions">
+      <label style="margin-bottom:2px;">อาการ/ปัญหาที่มีผลต่อการนอน</label>
+      <span class="hint" style="margin-bottom:14px; display:block;">เลือกได้ 1 อย่างที่ตรงกับอาการหลัก</span>
+      <div class="condition-select" id="condition-select">
+        <button type="button" class="condition-opt" data-condition="neck_strain">คอเคล็ด/ปวดต้นคอ</button>
+        <button type="button" class="condition-opt" data-condition="post_surgery">เพิ่งผ่าตัดคอ/ไหล่/หลัง</button>
+        <button type="button" class="condition-opt" data-condition="cervical_spine">กระดูกสันหลังส่วนคอมีปัญหา</button>
+        <button type="button" class="condition-opt" data-condition="shoulder_pain">ปวดไหล่เรื้อรัง/ไหล่ติด</button>
+        <button type="button" class="condition-opt" data-condition="snoring">นอนกรน/หยุดหายใจขณะหลับ</button>
+        <button type="button" class="condition-opt" data-condition="reflux">กรดไหลย้อน</button>
+      </div>
+      <div class="condition-note" id="condition-note" style="display:none;"></div>
+    </div>
+
+    <div class="field">
+      <label for="height">ส่วนสูง (ซม.)</label>
+      <input type="number" id="height" min="120" max="210" placeholder="เช่น 165" step="1">
+      <div class="err" id="height-err"></div>
+    </div>
+
+    <div class="field">
+      <label for="shoulder">ความกว้างไหล่ (ซม.)</label>
+      <input type="number" id="shoulder" min="25" max="60" placeholder="เช่น 40" step="1">
+      <span class="hint">วัดจากปลายไหล่ข้างหนึ่งถึงอีกข้าง ไม่แน่ใจใช้ค่าเริ่มต้นได้</span>
+      <div class="err" id="shoulder-err"></div>
+    </div>
+
+    <div class="field">
+      <label style="margin-bottom:2px;">สัดส่วนเวลาที่นอนแต่ละท่า</label>
+      <span class="hint" style="margin-bottom:14px; display:block;">ปรับตามความถี่จริง ระบบจะปรับให้รวมเป็น 100% ให้อัตโนมัติ</span>
+
+      <div class="slider-block">
+        <div class="slider-row-label"><span>นอนหงาย</span><span id="pct-back">33%</span></div>
+        <input type="range" id="w-back" min="0" max="100" value="33" step="1">
+      </div>
+      <div class="slider-block">
+        <div class="slider-row-label"><span>นอนตะแคง</span><span id="pct-side">34%</span></div>
+        <input type="range" id="w-side" min="0" max="100" value="34" step="1">
+      </div>
+      <div class="slider-block">
+        <div class="slider-row-label"><span>นอนคว่ำ</span><span id="pct-stomach">33%</span></div>
+        <input type="range" id="w-stomach" min="0" max="100" value="33" step="1">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>รูปทรงหมอนที่ต้องการคำนวณ</label>
+      <div class="shape-select" id="shape-select">
+        <button type="button" class="shape-opt" data-shape="rect">
+          <svg viewBox="0 0 40 24"><rect x="3" y="6" width="34" height="14" rx="3"/></svg>
+          หมอนมาตรฐาน
+        </button>
+        <button type="button" class="shape-opt" data-shape="wedge">
+          <svg viewBox="0 0 40 24"><path d="M4 20 L36 20 L36 6 Z"/></svg>
+          หมอนทรงลิ่ม
+        </button>
+        <button type="button" class="shape-opt" data-shape="contour">
+          <svg viewBox="0 0 40 24"><path d="M3 8 C 10 8, 10 18, 20 18 C 30 18, 30 8, 37 8"/></svg>
+          หมอนการแพทย์
+        </button>
+      </div>
+      <div class="err" id="shape-err">กรุณาเลือกรูปทรงหมอนก่อนคำนวณ</div>
+      <span class="hint">ระบบจะคำนวณขนาดเฉพาะของทรงที่เลือก</span>
+      <div class="recommend" id="form-recommend"></div>
+      <p class="wedge-note" id="form-shape-note"></p>
+    </div>
+
+    <button type="button" id="calc-btn">ดูขนาดหมอนที่เหมาะกับฉัน</button>
+  </div>
+
+  <div id="result-step" class="step">
+    <h1>ขนาดที่แนะนำสำหรับคุณ</h1>
+    <div class="illustration" id="illustration"></div>
+
+    <div class="mix-bar" id="mix-bar"></div>
+    <div class="mix-legend" id="mix-legend"></div>
+
+    <div class="dims" id="dims-container"></div>
+    <div class="eq" id="out-eq"></div>
+
+    <div class="note" id="out-note"></div>
+
+    <button class="secondary" id="reset-btn">คำนวณใหม่อีกครั้ง</button>
+    <p class="disclaimer">ตัวเลขนี้เป็นการประมาณเบื้องต้นจากสรีระทั่วไป เพื่อใช้เป็นแนวทางเลือกซื้อ ไม่ใช่คำแนะนำทางการแพทย์</p>
+  </div>
+
+</div>
+
+<script>
+// --- theme toggle ---
+(function(){
+  var root = document.documentElement;
+  var toggle = document.getElementById('theme-toggle');
+  var label = document.getElementById('theme-label');
+  var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  var current = prefersDark ? 'dark' : 'light';
+  root.setAttribute('data-theme', current);
+  label.textContent = current === 'dark' ? 'โหมดมืด' : 'โหมดสว่าง';
+
+  toggle.addEventListener('click', function(){
+    current = current === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', current);
+    label.textContent = current === 'dark' ? 'โหมดมืด' : 'โหมดสว่าง';
+  });
+})();
+
+// --- pillow calculator ---
+(function(){
+  var sliders = {
+    back: document.getElementById('w-back'),
+    side: document.getElementById('w-side'),
+    stomach: document.getElementById('w-stomach')
+  };
+  var pctLabels = {
+    back: document.getElementById('pct-back'),
+    side: document.getElementById('pct-side'),
+    stomach: document.getElementById('pct-stomach')
+  };
+  var posLabelTh = { back: 'นอนหงาย', side: 'นอนตะแคง', stomach: 'นอนคว่ำ' };
+  var posColorVar = { back: '--col-back', side: '--col-side', stomach: '--col-stomach' };
+  var shapeLabelTh = { rect: 'หมอนมาตรฐาน', wedge: 'หมอนทรงลิ่ม', contour: 'หมอนการแพทย์' };
+
+  var conditionInfo = {
+    neck_strain: { label: 'คอเคล็ด/ปวดต้นคอ', shape: 'contour', loftAdjust: -1,
+      note: 'ช่วงคอเคล็ดควรใช้หมอนที่ไม่สูงหรือต่ำเกินไปและรองรับแนวคอสม่ำเสมอ หมอนการแพทย์ทรงเว้าช่วยพยุงคอได้ดีกว่าทรงเรียบ หากอาการไม่ดีขึ้นควรปรึกษาแพทย์หรือนักกายภาพบำบัด' },
+    post_surgery: { label: 'เพิ่งผ่าตัดคอ/ไหล่/หลัง', shape: 'contour', loftAdjust: -2,
+      note: 'หลังผ่าตัดควรใช้หมอนเตี้ยกว่าปกติเล็กน้อยเพื่อลดแรงกดบริเวณแผลและจุดผ่าตัด ตัวเลขที่คำนวณนี้เป็นเพียงแนวทางเบื้องต้น ควรใช้ตามคำแนะนำของแพทย์ผู้ทำการผ่าตัดเป็นหลัก' },
+    cervical_spine: { label: 'กระดูกสันหลังส่วนคอมีปัญหา', shape: 'contour', loftAdjust: 0,
+      note: 'หมอนทรงเว้าช่วยพยุงแนวกระดูกสันหลังส่วนคอได้ดีกว่าทรงเรียบ แต่ควรได้รับการประเมินจากแพทย์เฉพาะทางกระดูกและข้อหรือเวชศาสตร์ฟื้นฟูก่อนเลือกความสูงที่แน่นอน' },
+    shoulder_pain: { label: 'ปวดไหล่เรื้อรัง/ไหล่ติด', shape: 'contour', loftAdjust: 1,
+      note: 'ไหล่ที่ปวดมักต้องการหมอนที่สูงขึ้นเล็กน้อยเมื่อนอนตะแคงเพื่อลดแรงกดบริเวณไหล่ หมอนทรงเว้าช่วยกระจายน้ำหนักได้ดีกว่าทรงเรียบ' },
+    snoring: { label: 'นอนกรน/หยุดหายใจขณะหลับ', shape: 'wedge', loftAdjust: 0,
+      note: 'การยกศีรษะให้สูงขึ้นด้วยหมอนทรงลิ่มอาจช่วยลดการอุดกั้นทางเดินหายใจได้ในบางราย แต่ไม่ใช่การรักษาหลักของภาวะนี้ ควรปรึกษาแพทย์ด้านการนอนหลับ' },
+    reflux: { label: 'กรดไหลย้อน', shape: 'wedge', loftAdjust: 0,
+      note: 'หมอนทรงลิ่มช่วยยกระดับช่วงบนของร่างกายเพื่อลดการไหลย้อนของกรด มุมและความสูงที่เหมาะสมอาจต่างกันในแต่ละคน ควรปรึกษาแพทย์ประกอบ' }
+  };
+
+  var currentMode = 'general';
+  var currentCondition = null;
+  var modeButtons = document.querySelectorAll('.mode-opt');
+  var patientBlock = document.getElementById('patient-conditions');
+  var conditionButtons = document.querySelectorAll('.condition-opt');
+  var conditionNoteEl = document.getElementById('condition-note');
+
+  modeButtons.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      modeButtons.forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      currentMode = btn.getAttribute('data-mode');
+      if(currentMode === 'patient'){
+        patientBlock.style.display = 'block';
+      } else {
+        patientBlock.style.display = 'none';
+        currentCondition = null;
+        conditionButtons.forEach(function(b){ b.classList.remove('active'); });
+        conditionNoteEl.style.display = 'none';
+      }
+      updateFormRecommendation();
+    });
+  });
+
+  conditionButtons.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      conditionButtons.forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      currentCondition = btn.getAttribute('data-condition');
+      var info = conditionInfo[currentCondition];
+      conditionNoteEl.textContent = info.note;
+      conditionNoteEl.style.display = 'block';
+      updateFormRecommendation();
+    });
+  });
+
+  var currentShape = null;
+  var shapeButtons = document.querySelectorAll('.shape-opt');
+  var shapeErrEl = null;
+  shapeButtons.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      shapeButtons.forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      currentShape = btn.getAttribute('data-shape');
+      document.getElementById('shape-err').style.display = 'none';
+    });
+  });
+
+  function normalizedWeights(){
+    var raw = {
+      back: parseFloat(sliders.back.value) || 0,
+      side: parseFloat(sliders.side.value) || 0,
+      stomach: parseFloat(sliders.stomach.value) || 0
+    };
+    var total = raw.back + raw.side + raw.stomach;
+    if(total <= 0){ return { back: 0.33, side: 0.34, stomach: 0.33 }; }
+    return { back: raw.back/total, side: raw.side/total, stomach: raw.stomach/total };
+  }
+
+  function updatePercentLabels(){
+    var w = normalizedWeights();
+    pctLabels.back.textContent = Math.round(w.back*100) + '%';
+    pctLabels.side.textContent = Math.round(w.side*100) + '%';
+    pctLabels.stomach.textContent = Math.round(w.stomach*100) + '%';
+  }
+  Object.keys(sliders).forEach(function(k){
+    sliders[k].addEventListener('input', updatePercentLabels);
+  });
+  updatePercentLabels();
+
+  function loftFor(pos, height, shoulder){
+    var baseLoft, weight;
+    if(pos === 'stomach'){ baseLoft = 6; weight = 0.05; }
+    else if(pos === 'back'){ baseLoft = 10; weight = 0.12; }
+    else { baseLoft = 13; weight = 0.22; }
+    var loft = baseLoft + (shoulder - 40) * weight;
+    return Math.max(5, Math.min(18, loft));
+  }
+
+  function footprintFor(height){
+    if(height < 160){ return { w: 40, l: 60 }; }
+    if(height < 176){ return { w: 45, l: 65 }; }
+    if(height < 186){ return { w: 50, l: 70 }; }
+    return { w: 50, l: 80 };
+  }
+
+  function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+
+  // ทรงลิ่ม/สามเหลี่ยม: ความสูงเปลี่ยนเป็นเส้นตรงจากด้านสูงไปด้านต่ำ
+  function computeWedge(weightedLoft, shoulder, length){
+    var delta = clamp(3 + (shoulder - 40) * 0.05, 2, 6);
+    var high = Math.round((weightedLoft + delta) * 2) / 2;
+    var low = Math.max(3, Math.round((weightedLoft - delta) * 2) / 2);
+    var slope = Math.round(((high - low) / length) * 1000) / 1000; // ซม.ความสูง ต่อ ซม.ความยาว
+    return { high: high, low: low, slope: slope, delta: delta };
+  }
+
+  // ทรงเว้าสุขภาพ: จำลองหน้าตัดด้วยพาราโบลา y = a(x-h)^2 + k
+  // จุดต่ำสุด (k) รับศีรษะตรงกลาง, ขอบทั้งสองข้าง (สูงกว่า) รับคอ
+  function computeContour(weightedLoft, shoulder, width){
+    var delta = clamp(2 + (shoulder - 40) * 0.04, 1.5, 4);
+    var side = Math.round((weightedLoft + delta) * 2) / 2;
+    var center = Math.max(3, Math.round((weightedLoft - delta) * 2) / 2);
+    var halfW = width / 2;
+    var a = (side - center) / (halfW * halfW);
+    a = Math.round(a * 10000) / 10000;
+    return { side: side, center: center, a: a, halfW: halfW };
+  }
+
+  function cssVar(name){
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  function renderIllustration(w, loft){
+    var loftPx = 20 + loft * 4;
+    var bodyW = 220;
+    var accent = cssVar('--accent');
+    var accentSoft = cssVar('--accent-soft');
+    var muted = cssVar('--muted');
+    return '<svg width="260" height="150" viewBox="0 0 260 150" xmlns="http://www.w3.org/2000/svg">' +
+      '<rect x="20" y="' + (120 - loftPx) + '" width="' + bodyW + '" height="' + loftPx + '" rx="' + Math.min(18, loftPx/2) + '" fill="' + accentSoft + '" stroke="' + accent + '" stroke-width="1.5"/>' +
+      '<line x1="250" y1="' + (120 - loftPx) + '" x2="250" y2="120" stroke="' + muted + '" stroke-width="1"/>' +
+      '<line x1="246" y1="' + (120 - loftPx) + '" x2="254" y2="' + (120 - loftPx) + '" stroke="' + muted + '" stroke-width="1"/>' +
+      '<line x1="246" y1="120" x2="254" y2="120" stroke="' + muted + '" stroke-width="1"/>' +
+      '<text x="256" y="' + (120 - loftPx/2) + '" font-size="11" fill="' + muted + '" font-family="Inter, sans-serif" text-anchor="start" transform="rotate(90 256 ' + (120 - loftPx/2) + ')">' + loft + ' ซม.</text>' +
+      '<line x1="20" y1="132" x2="240" y2="132" stroke="' + muted + '" stroke-width="1"/>' +
+      '<line x1="20" y1="128" x2="20" y2="136" stroke="' + muted + '" stroke-width="1"/>' +
+      '<line x1="240" y1="128" x2="240" y2="136" stroke="' + muted + '" stroke-width="1"/>' +
+      '<text x="130" y="147" font-size="11" fill="' + muted + '" font-family="Inter, sans-serif" text-anchor="middle">' + w + ' ซม.</text>' +
+      '</svg>';
+  }
+
+  function renderWedgeIllustration(w, high, low){
+    var highPx = 20 + high * 4;
+    var lowPx = 20 + low * 4;
+    var accent = cssVar('--accent');
+    var accentSoft = cssVar('--accent-soft');
+    var muted = cssVar('--muted');
+    var baseY = 120;
+    return '<svg width="260" height="150" viewBox="0 0 260 150" xmlns="http://www.w3.org/2000/svg">' +
+      '<path d="M20 ' + baseY + ' L20 ' + (baseY - highPx) + ' L240 ' + (baseY - lowPx) + ' L240 ' + baseY + ' Z" fill="' + accentSoft + '" stroke="' + accent + '" stroke-width="1.5" stroke-linejoin="round"/>' +
+      '<text x="10" y="' + (baseY - highPx - 6) + '" font-size="11" fill="' + muted + '" font-family="Inter, sans-serif" text-anchor="start">' + high + ' ซม.</text>' +
+      '<text x="250" y="' + (baseY - lowPx - 6) + '" font-size="11" fill="' + muted + '" font-family="Inter, sans-serif" text-anchor="end">' + low + ' ซม.</text>' +
+      '<line x1="20" y1="132" x2="240" y2="132" stroke="' + muted + '" stroke-width="1"/>' +
+      '<line x1="20" y1="128" x2="20" y2="136" stroke="' + muted + '" stroke-width="1"/>' +
+      '<line x1="240" y1="128" x2="240" y2="136" stroke="' + muted + '" stroke-width="1"/>' +
+      '<text x="130" y="147" font-size="11" fill="' + muted + '" font-family="Inter, sans-serif" text-anchor="middle">' + w + ' ซม.</text>' +
+      '</svg>';
+  }
+
+  function renderContourIllustration(w, center, side){
+    var centerPx = 20 + center * 4;
+    var sidePx = 20 + side * 4;
+    var accent = cssVar('--accent');
+    var accentSoft = cssVar('--accent-soft');
+    var muted = cssVar('--muted');
+    var baseY = 120;
+    var x0 = 20, x1 = 240, xm = 130;
+    var yTop0 = baseY - sidePx, yTopM = baseY - centerPx;
+    return '<svg width="260" height="150" viewBox="0 0 260 150" xmlns="http://www.w3.org/2000/svg">' +
+      '<path d="M' + x0 + ' ' + baseY + ' L' + x0 + ' ' + yTop0 + ' Q ' + xm + ' ' + (yTopM - (yTop0 - yTopM)) + ' ' + x1 + ' ' + yTop0 + ' L' + x1 + ' ' + baseY + ' Z" fill="' + accentSoft + '" stroke="' + accent + '" stroke-width="1.5" stroke-linejoin="round"/>' +
+      '<text x="10" y="' + (yTop0 - 6) + '" font-size="11" fill="' + muted + '" font-family="Inter, sans-serif" text-anchor="start">' + side + ' ซม.</text>' +
+      '<text x="' + xm + '" y="' + (yTopM - 10) + '" font-size="11" fill="' + muted + '" font-family="Inter, sans-serif" text-anchor="middle">' + center + ' ซม.</text>' +
+      '<line x1="20" y1="132" x2="240" y2="132" stroke="' + muted + '" stroke-width="1"/>' +
+      '<line x1="20" y1="128" x2="20" y2="136" stroke="' + muted + '" stroke-width="1"/>' +
+      '<line x1="240" y1="128" x2="240" y2="136" stroke="' + muted + '" stroke-width="1"/>' +
+      '<text x="130" y="147" font-size="11" fill="' + muted + '" font-family="Inter, sans-serif" text-anchor="middle">' + w + ' ซม.</text>' +
+      '</svg>';
+  }
+
+  function recommendShape(w, shoulder){
+    var shoulderDiff = shoulder - 40;
+    if(w.side >= 0.45 && shoulderDiff > 3){
+      return { shape: 'contour', reason: 'คุณมีไหล่ค่อนข้างกว้างและนอนตะแคงเป็นส่วนใหญ่ ช่องว่างระหว่างคอกับที่นอนจะมาก ทรงเว้าที่มีขอบสูงรองรับคอจะช่วยพยุงกระดูกสันหลังส่วนคอให้อยู่แนวตรงได้ดีกว่าทรงเรียบ' };
+    }
+    if(w.back >= 0.5){
+      return { shape: 'rect', reason: 'คุณนอนหงายเป็นส่วนใหญ่ ความสูงสม่ำเสมอตลอดหมอนรองรับต้นคอได้พอดีอยู่แล้ว ไม่จำเป็นต้องใช้ทรงเว้าหรือทรงลิ่ม' };
+    }
+    if(w.side >= 0.32){
+      return { shape: 'contour', reason: 'คุณนอนหลายท่าสลับกันโดยมีท่าตะแคงร่วมด้วย ทรงเว้าปรับรองรับได้หลายท่ากว่าทรงเรียบ เพราะมีทั้งจุดกลางรับศีรษะและขอบสูงรับคอในใบเดียว' };
+    }
+    return { shape: 'rect', reason: 'สัดส่วนท่านอนของคุณไม่มีท่าใดโดดเด่นเป็นพิเศษ หมอนมาตรฐานเป็นตัวเลือกที่เรียบง่ายและเหมาะกับการใช้งานทั่วไป' };
+  }
+
+  var shapeUsageNote = {
+    rect: 'หมอนมาตรฐาน: ความสูงคงที่ตลอดทั้งใบ เหมาะกับการนอนหงายและนอนตะแคงทั่วไปที่ไม่มีปัญหาสรีระเฉพาะจุด',
+    wedge: 'หมอนทรงลิ่ม: ความสูงลดจากด้านสูงไปด้านต่ำเป็นเส้นตรง ใช้ยกระดับศีรษะและลำตัวช่วงบนให้สูงกว่าปกติ เหมาะกับผู้ที่มีอาการกรดไหลย้อน คัดจมูก หรือภูมิแพ้ทางเดินหายใจ มากกว่าการรองรับแนวคอโดยตรง',
+    contour: 'หมอนการแพทย์: จุดกลางเว้าต่ำรับศีรษะ ขอบสองข้างยกสูงรับคอ ช่วยพยุงกระดูกสันหลังส่วนคอให้อยู่แนวตรงเมื่อนอนตะแคง เหมาะกับผู้ที่นอนตะแคงบ่อยหรือมีไหล่กว้าง'
+  };
+
+  function updateFormRecommendation(){
+    var recBox = document.getElementById('form-recommend');
+    var noteEl = document.getElementById('form-shape-note');
+
+    if(!currentShape){
+      recBox.innerHTML = '<span class="rec-title">เลือกรูปทรงด้านบนก่อน</span>ระบบจะบอกว่าทรงที่เลือกเหมาะกับคุณหรือไม่ พร้อมคำแนะนำวิธีใช้';
+      noteEl.textContent = '';
+      return;
+    }
+
+    var shoulderVal = parseFloat(document.getElementById('shoulder').value);
+    if(!shoulderVal || shoulderVal < 25 || shoulderVal > 60){ shoulderVal = 40; }
+    var w = normalizedWeights();
+
+    var rec;
+    if(currentMode === 'patient' && currentCondition){
+      var info = conditionInfo[currentCondition];
+      rec = { shape: info.shape, reason: 'จากอาการที่เลือกไว้ (' + info.label + ') หมอนทรงนี้มักได้รับการแนะนำ ดูรายละเอียดเพิ่มเติมจากคำแนะนำเฉพาะอาการด้านบน' };
+    } else {
+      rec = recommendShape(w, shoulderVal);
+    }
+
+    var matchesSelection = rec.shape === currentShape;
+    recBox.innerHTML =
+      (matchesSelection ? '<span class="rec-match">ตรงกับทรงที่คุณเลือกไว้</span><br>' : '') +
+      '<span class="rec-title">แนะนำ: ' + shapeLabelTh[rec.shape] + '</span>' + rec.reason;
+    noteEl.textContent = shapeUsageNote[currentShape];
+  }
+
+  document.getElementById('height').addEventListener('input', updateFormRecommendation);
+  document.getElementById('shoulder').addEventListener('input', updateFormRecommendation);
+  Object.keys(sliders).forEach(function(k){
+    sliders[k].addEventListener('input', updateFormRecommendation);
+  });
+  shapeButtons.forEach(function(btn){
+    btn.addEventListener('click', updateFormRecommendation);
+  });
+  updateFormRecommendation();
+
+  document.getElementById('calc-btn').addEventListener('click', function(){
+    var heightInput = document.getElementById('height');
+    var shoulderInput = document.getElementById('shoulder');
+    var heightErr = document.getElementById('height-err');
+    var shoulderErr = document.getElementById('shoulder-err');
+    heightErr.style.display = 'none';
+    shoulderErr.style.display = 'none';
+
+    var height = parseFloat(heightInput.value);
+    var shoulder = parseFloat(shoulderInput.value);
+    var valid = true;
+
+    if(!height || height < 120 || height > 210){
+      heightErr.textContent = 'กรอกส่วนสูงระหว่าง 120-210 ซม.';
+      heightErr.style.display = 'block';
+      valid = false;
+    }
+    if(!shoulder || shoulder < 25 || shoulder > 60){
+      shoulderErr.textContent = 'กรอกความกว้างไหล่ระหว่าง 25-60 ซม.';
+      shoulderErr.style.display = 'block';
+      valid = false;
+    }
+    var shapeErr = document.getElementById('shape-err');
+    shapeErr.style.display = 'none';
+    if(!currentShape){
+      shapeErr.style.display = 'block';
+      valid = false;
+    }
+    if(!valid) return;
+
+    var w = normalizedWeights();
+    var lofts = {
+      back: loftFor('back', height, shoulder),
+      side: loftFor('side', height, shoulder),
+      stomach: loftFor('stomach', height, shoulder)
+    };
+    var weightedLoft = w.back*lofts.back + w.side*lofts.side + w.stomach*lofts.stomach;
+    weightedLoft = Math.round(weightedLoft * 2) / 2;
+
+    var conditionAdjustNote = '';
+    if(currentMode === 'patient' && currentCondition){
+      var condInfo = conditionInfo[currentCondition];
+      weightedLoft = Math.max(3, weightedLoft + condInfo.loftAdjust);
+      weightedLoft = Math.round(weightedLoft * 2) / 2;
+      conditionAdjustNote = ' (ปรับตามอาการ: ' + condInfo.label + ')';
+    }
+
+    var fp = footprintFor(height);
+
+    var dimsEl = document.getElementById('dims-container');
+    var eqEl = document.getElementById('out-eq');
+    var noteEl = document.getElementById('out-note');
+    var illoEl = document.getElementById('illustration');
+    eqEl.textContent = '';
+
+    if(currentShape === 'wedge'){
+      var wedge = computeWedge(weightedLoft, shoulder, fp.l);
+      dimsEl.innerHTML =
+        '<div class="dim-box"><div class="num">' + fp.w + '×' + fp.l + '</div><div class="label">กว้าง × ยาว (ซม.)</div></div>' +
+        '<div class="dim-box"><div class="num">' + wedge.high + '</div><div class="label">สูงด้านสูง (ซม.)</div></div>' +
+        '<div class="dim-box"><div class="num">' + wedge.low + '</div><div class="label">สูงด้านต่ำ (ซม.)</div></div>';
+      illoEl.innerHTML = renderWedgeIllustration(fp.w, wedge.high, wedge.low);
+      noteEl.textContent = 'ความสูงลดลงเป็นเส้นตรงจากด้านสูง (' + wedge.high + ' ซม.) ไปด้านต่ำ (' + wedge.low + ' ซม.) ตลอดความยาว ' + fp.l + ' ซม. คิดเป็นความชันประมาณ ' + wedge.slope + ' ซม. ต่อความยาว 1 ซม. ทรงนี้เหมาะกับผู้ที่ต้องการยกศีรษะสูงกว่าหมอนทั่วไป มากกว่าการรองรับแนวคอโดยตรง';
+    } else if(currentShape === 'contour'){
+      var contour = computeContour(weightedLoft, shoulder, fp.w);
+      dimsEl.innerHTML =
+        '<div class="dim-box"><div class="num">' + fp.w + '×' + fp.l + '</div><div class="label">กว้าง × ยาว (ซม.)</div></div>' +
+        '<div class="dim-box"><div class="num">' + contour.center + '</div><div class="label">สูงจุดกลาง (เว้า) (ซม.)</div></div>' +
+        '<div class="dim-box"><div class="num">' + contour.side + '</div><div class="label">สูงขอบ (รองคอ) (ซม.)</div></div>';
+      illoEl.innerHTML = renderContourIllustration(fp.w, contour.center, contour.side);
+      eqEl.textContent = 'สมการหน้าตัด: y = ' + contour.a + '(x − ' + contour.halfW + ')² + ' + contour.center;
+      noteEl.textContent = 'หน้าตัดหมอนจำลองด้วยพาราโบลา จุดต่ำสุดตรงกลาง (' + contour.center + ' ซม.) รับศีรษะ ส่วนขอบทั้งสองข้าง (' + contour.side + ' ซม.) ยกสูงขึ้นรับคอ ช่วยพยุงกระดูกสันหลังส่วนคอให้อยู่ในแนวตรงเมื่อนอนตะแคง';
+    } else {
+      dimsEl.innerHTML =
+        '<div class="dim-box"><div class="num">' + fp.w + '×' + fp.l + '</div><div class="label">กว้าง × ยาว (ซม.)</div></div>' +
+        '<div class="dim-box"><div class="num">' + weightedLoft + '</div><div class="label">ความสูงหมอน (ซม.)<br>เฉลี่ยถ่วงน้ำหนัก</div></div>';
+      illoEl.innerHTML = renderIllustration(fp.w, weightedLoft);
+      var dominantForNote = Object.keys(w).reduce(function(a,b){ return w[a] > w[b] ? a : b; });
+      noteEl.textContent = 'ความสูงนี้สม่ำเสมอตลอดทั้งใบ เฉลี่ยถ่วงน้ำหนักจากสัดส่วนท่านอนของคุณ โดยเน้นตามท่า' + posLabelTh[dominantForNote].replace('นอน','') + 'ที่คุณนอนบ่อยที่สุด';
+    }
+
+    if(conditionAdjustNote){
+      noteEl.textContent += conditionAdjustNote + ' ตัวเลขนี้เป็นเพียงแนวทางเบื้องต้น ไม่ใช่คำวินิจฉัยทางการแพทย์ ควรปรึกษาแพทย์หรือนักกายภาพบำบัดก่อนตัดสินใจใช้จริง';
+    }
+
+    var mixBar = document.getElementById('mix-bar');
+    var mixLegend = document.getElementById('mix-legend');
+    mixBar.innerHTML = '';
+    mixLegend.innerHTML = '';
+    ['back','side','stomach'].forEach(function(pos){
+      var pct = Math.round(w[pos]*100);
+      if(pct > 0){
+        var seg = document.createElement('div');
+        seg.style.width = pct + '%';
+        seg.style.background = cssVar(posColorVar[pos]);
+        mixBar.appendChild(seg);
+      }
+      var leg = document.createElement('span');
+      leg.textContent = posLabelTh[pos] + ' ' + pct + '%';
+      mixLegend.appendChild(leg);
+    });
+
+    document.getElementById('form-step').style.display = 'none';
+    document.getElementById('result-step').style.display = 'block';
+  });
+
+  document.getElementById('reset-btn').addEventListener('click', function(){
+    document.getElementById('result-step').style.display = 'none';
+    document.getElementById('form-step').style.display = 'block';
+  });
+})();
+</script>
+
+</body>
+</html>
